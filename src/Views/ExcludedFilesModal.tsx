@@ -84,19 +84,22 @@ const ExcudedFilesView = ({ filters, folders, onCancel, onFilterChanged }: Excud
 
 	const onAdd = useCallback((e: React.MouseEvent) => {
 		setState(state => {
-	
+			if(!isValidRE(state.value)) return state;
 			return ({
 				...state,
 				filters: [...state.filters, state.value],
 				value: ""
 			})
 		})
-	}, [])
+	}, []) 
 
 	const onChange = useCallback((newValue: any, actionMeta: any) => {
 
 		if (actionMeta.action === "select-option" || actionMeta.action === "create-option") {
 			setState(state => {
+				if(!isValidRE(newValue.value)) return state;
+
+
 				return ({
 					...state,
 					filters: [...state.filters, newValue.value],
@@ -127,8 +130,12 @@ const ExcudedFilesView = ({ filters, folders, onCancel, onFilterChanged }: Excud
 		onFilterChanged && onFilterChanged(state.filters);
 	},[state.filters]);
 
+
+	const isValid = isValidRE(state.value);
+	const desc = isValid ? "Press enter or button to add filter" : "insert a valid regular expression"
+
 	return <div ref={ref}>
-		<div>Files matching the following filters are currently ignored::</div>
+		<div>Files matching the following regular expressions are currently ignored:</div>
 		{list.map((filter, i) => (
 			<div key={i} className="mobile-option-setting-item">
 				<span className="mobile-option-setting-item-name">{filter}</span>
@@ -136,7 +143,7 @@ const ExcudedFilesView = ({ filters, folders, onCancel, onFilterChanged }: Excud
 			</div>
 		))}
 		<SettingItem>
-			<SettingsInfo name="Filter" description="" />
+			<SettingsInfo name="Filter" description={desc} />
 			<SettingControl>
 				<SelectObs
 					key={filters.length}
@@ -148,7 +155,7 @@ const ExcudedFilesView = ({ filters, folders, onCancel, onFilterChanged }: Excud
 					onChange={onChange}
 					onInputChange={onInputChange}
 				/>
-				<button onClick={onAdd}>Add</button>
+				<button onClick={onAdd} disabled={!isValid}>Add</button>
 			</SettingControl>
 		</SettingItem>
 		<div className="modal-button-container">
@@ -157,4 +164,15 @@ const ExcudedFilesView = ({ filters, folders, onCancel, onFilterChanged }: Excud
 	</div>
 }
 
+
+function isValidRE(value: string) {
+	let isValid = value.length > 0;
+
+	try {
+		const re = new RegExp(value);
+	} catch {
+		isValid = false;
+	}
+	return isValid;
+}
 
